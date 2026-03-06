@@ -119,7 +119,7 @@ class TextDecoder(nn.Module):
                     labels[i, : (j + 1)] = -100
                     break
 
-        input_embeds = self.text_decoder.model.model.embed_tokens(input_ids)
+        input_embeds = self.text_decoder.get_input_embeddings()(input_ids)
         image_embeds_len = image_embeds.shape[1]
         image_labels = torch.ones(
             (image_embeds.shape[0], image_embeds_len), dtype=torch.long
@@ -155,7 +155,7 @@ class TextDecoder(nn.Module):
         input_ids = inputs.input_ids
         input_ids = input_ids[:, 1:]
 
-        input_embeds = self.text_decoder.model.model.embed_tokens(input_ids)
+        input_embeds = self.text_decoder.get_input_embeddings()(input_ids)
 
         input_embeds = torch.cat((image_embeds, input_embeds), dim=1)
         outputs = self.text_decoder.generate(inputs_embeds=input_embeds, **kwargs)

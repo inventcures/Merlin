@@ -49,6 +49,13 @@ dev = [
     "pre-commit",
     "mdformat"
 ]
+gguf = [
+    "llama-cpp-python>=0.2.0",
+]
+eval = [
+    "rouge_score",
+    "bert_score",
+]
 
 [build-system]
 requires = ["setuptools>=67.8.0"]

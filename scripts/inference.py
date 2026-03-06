@@ -12,6 +12,7 @@ import time
 import warnings
 
 import torch
+import torch.quantization
 from transformers import StoppingCriteria
 
 from scripts.configs import DEVICE, ORGAN_SYSTEMS, FIVE_YEAR_DISEASES
@@ -54,6 +55,16 @@ def get_merlin_model(mode: str):
 
     model.eval()
     model.to(DEVICE)
+
+    if mode == "report":
+        td = model.model.decode_text
+        td.text_decoder = td.text_decoder.merge_and_unload()
+        td.text_decoder.gradient_checkpointing_disable()
+        td.text_decoder = torch.quantization.quantize_dynamic(
+            td.text_decoder, {torch.nn.Linear}, dtype=torch.qint8
+        )
+        print("[Merlin] Applied LoRA merge + gradient ckpt disable + INT8 quantization")
+
     _model_cache[mode] = model
     print(f"[Merlin] Model loaded")
     return model

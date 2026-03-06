@@ -24,7 +24,7 @@ from scripts.download_abdomenatlas import (
     load_existing_cases,
     filter_cases_by_pathology,
 )
-from scripts.inference import run_report_generation, run_five_year_prediction
+from scripts.inference import run_report_generation as _pytorch_report_gen, run_five_year_prediction
 from scripts.metrics import compute_all_metrics, aggregate_metrics
 
 
@@ -89,6 +89,13 @@ def save_results(results: list[dict], summary: dict, output_dir: str):
             print(f"  {metric:20s}: {stats['mean']:.4f} +/- {stats['std']:.4f}  (n={stats['n']}){range_str}")
 
 
+def _get_report_generator(backend: str):
+    if backend == "gguf":
+        from scripts.inference_gguf import run_report_generation as _gguf_report_gen
+        return _gguf_report_gen
+    return _pytorch_report_gen
+
+
 def run_eval_pipeline(
     n_cases: int = 5,
     output_dir: str = "./merlin_eval_results",
@@ -96,10 +103,13 @@ def run_eval_pipeline(
     skip_download: bool = False,
     pathology: str = "all",
     run_survival: bool = True,
+    backend: str = "pytorch",
 ):
+    report_gen = _get_report_generator(backend)
+
     print(f"\n{'=' * 60}")
     print(f"  Merlin Evaluation Pipeline")
-    print(f"  Cases: {n_cases} | Pathology: {pathology} | Device: {DEVICE.upper()}")
+    print(f"  Cases: {n_cases} | Pathology: {pathology} | Backend: {backend.upper()}")
     print(f"  Estimated time: {n_cases * 15}-{n_cases * 25} min")
     print(f"{'=' * 60}")
 
@@ -130,7 +140,7 @@ def run_eval_pipeline(
         }
 
         try:
-            pred_report, elapsed = run_report_generation(case["nifti_path"])
+            pred_report, elapsed = report_gen(case["nifti_path"])
             result["pred_report"] = pred_report
             result["inference_time_s"] = round(elapsed, 1)
         except Exception as e:
@@ -211,6 +221,10 @@ if __name__ == "__main__":
         help="Filter cases by pathology keywords in ground truth reports",
     )
     parser.add_argument("--no_survival", action="store_true")
+    parser.add_argument(
+        "--backend", choices=["pytorch", "gguf"], default="pytorch",
+        help="Inference backend: pytorch (optimized INT8) or gguf (llama.cpp)",
+    )
     parser.add_argument("--show_metric_guide", action="store_true")
     args = parser.parse_args()
 
@@ -236,4 +250,5 @@ if __name__ == "__main__":
         skip_download=args.skip_download,
         pathology=args.pathology,
         run_survival=not args.no_survival,
+        backend=args.backend,
     )
