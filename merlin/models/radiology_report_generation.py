@@ -82,7 +82,7 @@ class TextDecoder(nn.Module):
         self.text_decoder = AutoModelForCausalLM.from_pretrained(
             "StanfordAIMI/RadLLaMA-7b",
             cache_dir="./checkpoints",
-            torch_dtype=torch.float16,
+            torch_dtype=torch.bfloat16,
         )
         self.text_decoder.gradient_checkpointing_enable()
 

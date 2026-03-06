@@ -21,7 +21,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 model = Merlin()
 model.eval()
-model.cuda()
+model.cpu()
 
 data_dir = os.path.join(os.path.dirname(__file__), "abct_data")
 cache_dir = data_dir.replace("abct_data", "abct_data_cache")
@@ -60,7 +60,7 @@ for batch in dataloader:
 ## Get the Image Embeddings
 model = Merlin(ImageEmbedding=True)
 model.eval()
-model.cuda()
+model.cpu()
 
 for batch in dataloader:
     outputs = model(
@@ -74,7 +74,7 @@ for batch in dataloader:
 # Get the Phenotype Predictions
 model = Merlin(PhenotypeCls=True)
 model.eval()
-model.cuda()
+model.cpu()
 
 phenotypes = pd.read_csv(os.path.join(os.path.dirname(__file__), "phenotypes.csv"))
 
@@ -113,7 +113,7 @@ for batch in dataloader:
 # Get the Five Year Disease Prediction
 model = Merlin(FiveYearPred=True)
 model.eval()
-model.cuda()
+model.cpu()
 
 disease_names = [
     "Cardiovascular Disease (CVD)",
