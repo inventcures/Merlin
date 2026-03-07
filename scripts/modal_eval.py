@@ -396,7 +396,7 @@ class MerlinInference:
         mode = gen_config.get("mode", "per_organ")
         gen_kwargs = {
             k: v for k, v in gen_config.items()
-            if k not in ("mode",)
+            if k not in ("mode", "_name")
         }
         gen_kwargs["stopping_criteria"] = [EosListStoppingCriteria()]
 
